@@ -14,16 +14,22 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 
-from config import (
-    BOT_TOKEN,
-    OWNER_ID,
-    PRODUCTS,
-    SUPPORT_USERNAME,
-    PROXY,
-    BANK_NAME,
-    CARD_NUMBER,
-    CARD_HOLDER
-)
+import os
+from aiohttp import web
+import config
+
+BOT_TOKEN = getattr(config, "BOT_TOKEN", "")
+OWNER_ID = getattr(config, "OWNER_ID", 0)
+PRODUCTS = getattr(config, "PRODUCTS", {})
+SUPPORT_USERNAME = getattr(config, "SUPPORT_USERNAME", "")
+BANK_NAME = getattr(config, "BANK_NAME", "")
+CARD_NUMBER = getattr(config, "CARD_NUMBER", "")
+CARD_HOLDER = getattr(config, "CARD_HOLDER", "")
+
+# Прокси: берем из config.py или переменной окружения PROXY (если на Render прокси не нужен, можно оставить None)
+PROXY = os.environ.get("PROXY", getattr(config, "PROXY", None))
+if not PROXY:
+    PROXY = None
 
 from keyboards import (
     main_menu_keyboard,
@@ -59,6 +65,25 @@ bot = Bot(
     default=DefaultBotProperties(parse_mode=ParseMode.HTML)
 )
 dp = Dispatcher()
+
+
+async def start_dummy_web_server():
+    """Запуск фонового веб-сервера для прохождения проверки портов Render (Web Service)"""
+    port = int(os.environ.get("PORT", 8080))
+    app = web.Application()
+
+    async def health_check(request):
+        return web.Response(text="Bot is running! 🚀")
+
+    app.router.add_get("/", health_check)
+    app.router.add_get("/health", health_check)
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logger.info(f"🌐 Фоновый веб-сервер запущен на порту {port} (Render Health Check OK)")
+
 
 
 # Состояния для FSM
@@ -565,7 +590,14 @@ async def process_broadcast_message(message: Message, state: FSMContext):
 async def main():
     logger.info("Инициализация базы данных...")
     init_db()
-    
+
+    # Если бот развернут как Web Service на Render (передается переменная окружения PORT)
+    if "PORT" in os.environ:
+        try:
+            await start_dummy_web_server()
+        except Exception as e:
+            logger.error(f"Не удалось запустить веб-сервер: {e}")
+
     logger.info("Запуск бота...")
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)

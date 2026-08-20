@@ -10,6 +10,9 @@ REVIEWS_URL = "https://t.me/otzivixae"
 SUPPORT_USERNAME = "xae_urod"
 SUPPORT_URL = "https://t.me/xae_urod"
 
+# Прокси (Webshare)
+PROXY = "http://zgyrfroy:hngvxr7myd86@31.59.20.176:6754"
+
 # Реквизиты для оплаты картой (Рубли)
 BANK_NAME = "Сбербанк (СБЕР)"
 CARD_NUMBER = "2202 2088 1179 6979"
