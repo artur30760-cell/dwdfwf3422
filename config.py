@@ -10,8 +10,9 @@ REVIEWS_URL = "https://t.me/otzivixae"
 SUPPORT_USERNAME = "xae_urod"
 SUPPORT_URL = "https://t.me/xae_urod"
 
-# Прокси (Webshare)
-PROXY = "http://zgyrfroy:hngvxr7myd86@31.59.20.176:6754"
+# Прокси (для Render и большинства серверов прокси НЕ нужен, так как Telegram там не блокируется).
+# Оставьте None для прямого подключения.
+PROXY = None
 
 # Реквизиты для оплаты картой (Рубли)
 BANK_NAME = "Сбербанк (СБЕР)"
